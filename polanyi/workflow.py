@@ -12,6 +12,8 @@ from typing import Mapping, Optional, Union
 
 from morfeus.conformer import ConformerEnsemble
 import numpy as np
+import os
+import subprocess
 
 from polanyi import config
 from polanyi.geometry import two_frags_from_bo
@@ -167,10 +169,11 @@ def opt_ts(
     kw_shift: Optional[Mapping] = None,
     kw_opt: Optional[Mapping] = None,
     kw_interpolation: Optional[Mapping] = None,
+    debug_path: Optional[Union[str, PathLike]] = None,
 ) -> Results:
     """Optimize transition state with xtb command line and PySCF.
     Args:
-        elements: Elements as symbols or numbers
+        elements: TS elements as symbols or numbers
         coordinates: Sequence containing the coordinates of each ground states (Å)
         coordinates_guess: Initial guess for the transition state (Å)
         atomic_charges: Atomic charges (not implemented yet)
@@ -179,8 +182,9 @@ def opt_ts(
         kw_shift: xtb command line keywords for energy shift calculation
         kw_opt: xtb command line keywords for optimization
         kw_interpolation: xtb command line keywords for the TS interpolation
+        debug_path: Path to save files in debug mode
     Returns:
-        results: results of the TS optimization
+        results: Results of the TS optimization
     """
     if kw_opt is None:
         kw_opt = {}
@@ -205,6 +209,27 @@ def opt_ts(
         coordinates_guess = path[n_images // 2]
     opt_results = ts_from_gfnff(elements, coordinates_guess, topologies, e_shift=e_shift, **kw_opt)
 
+    # Save the optimisation steps if debug mode
+    if debug_path is not None:
+        os.makedirs(debug_path, exist_ok=True)
+        temp_xyz = f"{debug_path}/opt_steps.xyz"
+        output_pdb = f"{debug_path}/opt_steps.pdb"
+        with open(temp_xyz, "w") as f:
+            f.write(f"{len(elements)}\n")
+            f.write("initial guess\n")
+            for element, coord_elem in zip(elements, coordinates_guess):
+                f.write(f"{element} {coord_elem[0]} {coord_elem[1]} {coord_elem[2]}\n")
+            for i, coord in enumerate(opt_results.coordinates):
+                f.write(f"{len(elements)}\n")
+                f.write(f"step {i}\n")
+                for element, coord_elem in zip(elements, coord):
+                    f.write(f"{element} {coord_elem[0]} {coord_elem[1]} {coord_elem[2]}\n")
+                f.write("\n")
+        cmd_openbabel = f"obabel -ixyz {temp_xyz} -O {output_pdb}"
+        subprocess.run(cmd_openbabel.split())
+        cmd_rm_temp = f"rm {temp_xyz}"
+        subprocess.run(cmd_rm_temp.split())
+    
     results = Results(
         opt_results=opt_results,
         coordinates_opt=opt_results.coordinates[-1],
