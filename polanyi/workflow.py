@@ -18,7 +18,7 @@ import subprocess
 from polanyi import config
 from polanyi.geometry import two_frags_from_bo
 from polanyi.interpolation import interpolate_geodesic
-from polanyi.pyscf import OptResults, ts_from_gfnff_python, ts_from_gfnff, ts_from_gfnff_ci_python
+from polanyi.pyscf import OptResults, ts_from_gfnff_python, ts_from_gfnff, ts_from_gfnff_ci_python, ts_from_gfnff_ci
 from polanyi.typing import Array1D, Array2D, ArrayLike2D
 from polanyi.xtb import (
     opt_crest,
@@ -108,6 +108,7 @@ def opt_ts_python(
 
     return results
 
+
 def opt_ts_ci_python(
     elements: Union[Sequence[int], Sequence[str]],
     coordinates: Sequence[Array2D],
@@ -157,6 +158,88 @@ def opt_ts_ci_python(
     coordinates_opt = ts_from_gfnff_ci_python(elements, coordinates_guess, calculators, e_shift=e_shift, **kw_opt)
 
     return coordinates_opt
+
+
+def opt_ts_ci(
+    elements: Union[Sequence[int], Sequence[str]],
+    coordinates: Sequence[Array2D],
+    coordinates_guess: Optional[Array2D] = None,
+    atomic_charges: Optional[list[float]] = None,
+    e_shift: Optional[float] = None,
+    kw_calculators: Optional[Mapping] = None,
+    kw_shift: Optional[Mapping] = None,
+    kw_opt: Optional[Mapping] = None,
+    kw_interpolation: Optional[Mapping] = None,
+    debug_path: Optional[Union[str, PathLike]] = None,
+) -> Results:
+    """Optimize transition state with xtb command line and PySCF using conical intersection.
+    Args:
+        elements: Elements as symbols or numbers
+        coordinates: Sequence containing the coordinates of each ground states (Å)
+        coordinates_guess: Initial guess for the transition state (Å)
+        atomic_charges: Atomic charges (not implemented yet)
+        e_shift: Energy shift between the ground states
+        kw_calculators: xtb command line keywords for topologies calculation
+        kw_shift: xtb command line keywords for energy shift calculation
+        kw_opt: xtb command line keywords for optimization
+        kw_interpolation: xtb command line keywords for the TS interpolation
+        debug_path: Path to save files in debug mode
+    Returns:
+        results: results of the TS optimization
+    """
+    if kw_opt is None:
+        kw_opt = {}
+    if kw_shift is None:
+        kw_shift = {}
+    if kw_calculators is None:
+        kw_calculators = {}
+    if kw_interpolation is None:
+        kw_interpolation = {}
+    topologies = setup_gfnff_calculators(elements, coordinates, atomic_charges=atomic_charges, **kw_calculators)
+    shift_results: Optional[tuple[float, float, float]]
+    if e_shift is None:
+        shift_results = calculate_e_shift_xtb(elements, coordinates, topologies, **kw_shift)
+        e_shift = shift_results[0]
+    else:
+        shift_results = None
+    if coordinates_guess is None:
+        n_images = kw_interpolation.get("n_images")
+        if n_images is None:
+            n_images = signature(interpolate_geodesic).parameters["n_images"].default
+        path = interpolate_geodesic(elements, coordinates, **kw_interpolation)
+        coordinates_guess = path[n_images // 2]
+    opt_results = ts_from_gfnff_ci(
+        elements, coordinates_guess, topologies, e_shift=e_shift, **kw_opt
+    )
+
+    # Save the optimisation steps if debug mode
+    if debug_path is not None:
+        os.makedirs(debug_path, exist_ok=True)
+        temp_xyz = f"{debug_path}/opt_steps.xyz"
+        output_pdb = f"{debug_path}/opt_steps.pdb"
+        with open(temp_xyz, "w") as f:
+            f.write(f"{len(elements)}\n")
+            f.write("initial guess\n")
+            for element, coord_elem in zip(elements, coordinates_guess):
+                f.write(f"{element} {coord_elem[0]} {coord_elem[1]} {coord_elem[2]}\n")
+            for i, coord in enumerate(opt_results.coordinates):
+                f.write(f"{len(elements)}\n")
+                f.write(f"step {i}\n")
+                for element, coord_elem in zip(elements, coord):
+                    f.write(f"{element} {coord_elem[0]} {coord_elem[1]} {coord_elem[2]}\n")
+                f.write("\n")
+        cmd_openbabel = f"obabel -ixyz {temp_xyz} -O {output_pdb}"
+        subprocess.run(cmd_openbabel.split())
+        cmd_rm_temp = f"rm {temp_xyz}"
+        subprocess.run(cmd_rm_temp.split())
+
+    results = Results(
+        opt_results=opt_results,
+        coordinates_opt=opt_results.coordinates[-1],
+        shift_results=shift_results,
+    )
+
+    return results
 
 
 def opt_ts(
