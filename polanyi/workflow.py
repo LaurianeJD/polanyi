@@ -58,7 +58,19 @@ def opt_ts_python(
     kw_opt: Optional[Mapping] = None,
     kw_interpolation: Optional[Mapping] = None,
 ) -> Results:
-    """Optimize transition state with xtb-python and PySCF."""
+    """Optimize transition state with xtb-python and PySCF.
+    Args:
+        elements: Elements as symbols or numbers
+        coordinates: Sequence containing the coordinates of each ground states (Å)
+        coordinates_guess: Initial guess for the transition state (Å)
+        e_shift: Energy shift between the ground states
+        kw_calculators: xtb command line keywords for topologies calculation
+        kw_shift: xtb command line keywords for energy shift calculation
+        kw_opt: xtb command line keywords for optimization
+        kw_interpolation: xtb command line keywords for the TS interpolation
+    Returns:
+        results: results of the TS optimization
+    """
     if kw_opt is None:
         kw_opt = {}
     if kw_shift is None:
@@ -104,7 +116,19 @@ def opt_ts_ci_python(
     kw_opt: Optional[Mapping] = None,
     kw_interpolation: Optional[Mapping] = None,
 ) -> Array2D:
-    """Optimize transition state with xtb-python and PySCF using conical intersection."""
+    """Optimize transition state with xtb-python and PySCF using conical intersection.
+    Args:
+        elements: Elements as symbols or numbers
+        coordinates: Sequence containing the coordinates of each ground states (Å)
+        coordinates_guess: Initial guess for the transition state (Å)
+        e_shift: Energy shift between the ground states
+        kw_calculators: xtb command line keywords for topologies calculation
+        kw_shift: xtb command line keywords for energy shift calculation
+        kw_opt: xtb command line keywords for optimization
+        kw_interpolation: xtb command line keywords for the TS interpolation
+    Returns:
+        coordinates_op: coordinates of the optimised transition state (Å)
+    """
     if kw_opt is None:
         kw_opt = {}
     if kw_shift is None:
@@ -144,7 +168,20 @@ def opt_ts(
     kw_opt: Optional[Mapping] = None,
     kw_interpolation: Optional[Mapping] = None,
 ) -> Results:
-    """Optimize transition state with xtb command line and PySCF."""
+    """Optimize transition state with xtb command line and PySCF.
+    Args:
+        elements: Elements as symbols or numbers
+        coordinates: Sequence containing the coordinates of each ground states (Å)
+        coordinates_guess: Initial guess for the transition state (Å)
+        atomic_charges: Atomic charges (not implemented yet)
+        e_shift: Energy shift between the ground states
+        kw_calculators: xtb command line keywords for topologies calculation
+        kw_shift: xtb command line keywords for energy shift calculation
+        kw_opt: xtb command line keywords for optimization
+        kw_interpolation: xtb command line keywords for the TS interpolation
+    Returns:
+        results: results of the TS optimization
+    """
     if kw_opt is None:
         kw_opt = {}
     if kw_shift is None:
@@ -251,14 +288,12 @@ def opt_frags_from_complex(
     xcontrol_keywords: Optional[MutableMapping[str, list[str]]] = None,
 ) -> list[tuple[Array1D, Array2D]]:
     """Optimize two fragments from complex.
-
     Args:
         elements: Elements as symbols or numbers
         coordinates: Coordinates (Å)
         keywords: xtb command line keywords for optimization
         wbo_keywords: xtb command line keywords for wbo calculation
         xcontrol_keywords: xtb xcontrol keywords
-
     Returns:
         fragments: Fragment elements and coordinates
     """

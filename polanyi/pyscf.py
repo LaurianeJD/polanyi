@@ -76,12 +76,12 @@ def e_g_function(
     """Find TS with GFN-FF using xtb command line.
     Args:
         mol: PySCF molecule (coordinates are in Bohr)
-        topologies: GFN-FF topologies
+        topologies: sequence of GFN-FF topologies for each ground state
         results: OptResults object
-        keywords: keywords for xTB calculation
+        keywords: xtb command line keywords
         xcontrol_keywords: xTB control keywords
-        e_shift: energy shift
-        coupling: coupling constant
+        e_shift: energy shift between the ground states
+        coupling: coupling constant between the ground states force fields
         path: path where to run calculations
     Returns:
         tuple of adiabatic energy and gradient
@@ -157,11 +157,11 @@ def e_g_function_python(
 ) -> tuple[float, Array2D]:
     """Find TS with GFN-FF using xtb-python.
     Args:
-        mol: PySCF molecule (coordinates are in Bohr)
+        mol: PySCF molecule (coordinates in Bohr)
         calculators: xtb-python calculators
         results: OptResults object
-        e_shift: energy shift
-        coupling: coupling constant
+        e_shift: energy shift between the ground states
+        coupling: coupling constant between the ground states force fields
         path: path where to run calculations
     Returns:
         tuple of adiabatic energy and gradient
@@ -209,7 +209,7 @@ def e_g_function_ci_python(
     Args:
         mol: PySCF molecule (coordinates are in Bohr)
         calculator: xtb-python calculator
-        e_shift: energy shift
+        e_shift: energy shift between the ground states
         path: path where to run calculations
     Returns:
         tuple of energy and gradient
