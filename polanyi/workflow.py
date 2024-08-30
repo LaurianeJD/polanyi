@@ -81,21 +81,25 @@ def opt_ts_python(
         kw_calculators = {}
     if kw_interpolation is None:
         kw_interpolation = {}
+    
     calculators = setup_gfnff_calculators_python(
         elements, coordinates, **kw_calculators
     )
+
     shift_results: Optional[ShiftResults]
     if e_shift is None:
         shift_results = calculate_e_shift_xtb_python(calculators, **kw_shift)
         e_shift = shift_results.energy_shift
     else:
         shift_results = None
+    
     if coordinates_guess is None:
         n_images = kw_interpolation.get("n_images")
         if n_images is None:
             n_images = signature(interpolate_geodesic).parameters["n_images"].default
         path = interpolate_geodesic(elements, coordinates, **kw_interpolation)
         coordinates_guess = path[n_images // 2]
+    
     opt_results = ts_from_gfnff_python(
         elements, coordinates_guess, calculators, e_shift=e_shift, **kw_opt
     )
@@ -140,21 +144,25 @@ def opt_ts_ci_python(
         kw_calculators = {}
     if kw_interpolation is None:
         kw_interpolation = {}
+    
     calculators = setup_gfnff_calculators_python(
         elements, coordinates, **kw_calculators
     )
+
     shift_results: Optional[ShiftResults]
     if e_shift is None:
         shift_results = calculate_e_shift_xtb_python(calculators, **kw_shift)
         e_shift = shift_results.energy_shift
     else:
         shift_results = None
+    
     if coordinates_guess is None:
         n_images = kw_interpolation.get("n_images")
         if n_images is None:
             n_images = signature(interpolate_geodesic).parameters["n_images"].default
         path = interpolate_geodesic(elements, coordinates, **kw_interpolation)
         coordinates_guess = path[n_images // 2]
+    
     coordinates_opt = ts_from_gfnff_ci_python(elements, coordinates_guess, calculators, e_shift=e_shift, **kw_opt)
 
     return coordinates_opt
@@ -170,7 +178,7 @@ def opt_ts_ci(
     kw_shift: Optional[Mapping] = None,
     kw_opt: Optional[Mapping] = None,
     kw_interpolation: Optional[Mapping] = None,
-    debug_path: Optional[Union[str, PathLike]] = None,
+    #debug_path: Optional[Union[str, PathLike]] = None,
 ) -> Results:
     """Optimize transition state with xtb command line and PySCF using conical intersection.
     Args:
@@ -183,7 +191,7 @@ def opt_ts_ci(
         kw_shift: xtb command line keywords for energy shift calculation
         kw_opt: xtb command line keywords for optimization
         kw_interpolation: xtb command line keywords for the TS interpolation
-        debug_path: Path to save files in debug mode
+        #debug_path: Path to save files in debug mode
     Returns:
         results: results of the TS optimization
     """
@@ -195,52 +203,47 @@ def opt_ts_ci(
         kw_calculators = {}
     if kw_interpolation is None:
         kw_interpolation = {}
+    
     topologies = setup_gfnff_calculators(elements, coordinates, atomic_charges=atomic_charges, **kw_calculators)
+    
     shift_results: Optional[tuple[float, float, float]]
     if e_shift is None:
         shift_results = calculate_e_shift_xtb(elements, coordinates, topologies, **kw_shift)
         e_shift = shift_results[0]
     else:
         shift_results = None
+    
     if coordinates_guess is None:
         n_images = kw_interpolation.get("n_images")
         if n_images is None:
             n_images = signature(interpolate_geodesic).parameters["n_images"].default
         path = interpolate_geodesic(elements, coordinates, **kw_interpolation)
         coordinates_guess = path[n_images // 2]
-    opt_results = ts_from_gfnff_ci(
-        elements, coordinates_guess, topologies, e_shift=e_shift, **kw_opt
-    )
+    
+    coordinates_opt = ts_from_gfnff_ci(elements, coordinates_guess, topologies, e_shift=e_shift, **kw_opt)
 
-    # Save the optimisation steps if debug mode
-    if debug_path is not None:
-        os.makedirs(debug_path, exist_ok=True)
-        temp_xyz = f"{debug_path}/opt_steps.xyz"
-        output_pdb = f"{debug_path}/opt_steps.pdb"
-        with open(temp_xyz, "w") as f:
-            f.write(f"{len(elements)}\n")
-            f.write("initial guess\n")
-            for element, coord_elem in zip(elements, coordinates_guess):
-                f.write(f"{element} {coord_elem[0]} {coord_elem[1]} {coord_elem[2]}\n")
-            for i, coord in enumerate(opt_results.coordinates):
-                f.write(f"{len(elements)}\n")
-                f.write(f"step {i}\n")
-                for element, coord_elem in zip(elements, coord):
-                    f.write(f"{element} {coord_elem[0]} {coord_elem[1]} {coord_elem[2]}\n")
-                f.write("\n")
-        cmd_openbabel = f"obabel -ixyz {temp_xyz} -O {output_pdb}"
-        subprocess.run(cmd_openbabel.split())
-        cmd_rm_temp = f"rm {temp_xyz}"
-        subprocess.run(cmd_rm_temp.split())
+    # # Save the optimisation steps if debug mode
+    # if debug_path is not None:
+    #     os.makedirs(debug_path, exist_ok=True)
+    #     temp_xyz = f"{debug_path}/opt_steps.xyz"
+    #     output_pdb = f"{debug_path}/opt_steps.pdb"
+    #     with open(temp_xyz, "w") as f:
+    #         f.write(f"{len(elements)}\n")
+    #         f.write("initial guess\n")
+    #         for element, coord_elem in zip(elements, coordinates_guess):
+    #             f.write(f"{element} {coord_elem[0]} {coord_elem[1]} {coord_elem[2]}\n")
+    #         for i, coord in enumerate(opt_results.coordinates):
+    #             f.write(f"{len(elements)}\n")
+    #             f.write(f"step {i}\n")
+    #             for element, coord_elem in zip(elements, coord):
+    #                 f.write(f"{element} {coord_elem[0]} {coord_elem[1]} {coord_elem[2]}\n")
+    #             f.write("\n")
+    #     cmd_openbabel = f"obabel -ixyz {temp_xyz} -O {output_pdb}"
+    #     subprocess.run(cmd_openbabel.split())
+    #     cmd_rm_temp = f"rm {temp_xyz}"
+    #     subprocess.run(cmd_rm_temp.split())
 
-    results = Results(
-        opt_results=opt_results,
-        coordinates_opt=opt_results.coordinates[-1],
-        shift_results=shift_results,
-    )
-
-    return results
-
+    return coordinates_opt
 
 def opt_ts(
     elements: Union[Sequence[int], Sequence[str]],
@@ -290,6 +293,7 @@ def opt_ts(
             n_images = signature(interpolate_geodesic).parameters["n_images"].default
         path = interpolate_geodesic(elements, coordinates, **kw_interpolation)
         coordinates_guess = path[n_images // 2]
+    
     opt_results = ts_from_gfnff(elements, coordinates_guess, topologies, e_shift=e_shift, **kw_opt)
 
     # Save the optimisation steps if debug mode
