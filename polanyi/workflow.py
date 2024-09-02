@@ -178,7 +178,6 @@ def opt_ts_ci(
     kw_shift: Optional[Mapping] = None,
     kw_opt: Optional[Mapping] = None,
     kw_interpolation: Optional[Mapping] = None,
-    #debug_path: Optional[Union[str, PathLike]] = None,
 ) -> Results:
     """Optimize transition state with xtb command line and PySCF using conical intersection.
     Args:
@@ -191,7 +190,6 @@ def opt_ts_ci(
         kw_shift: xtb command line keywords for energy shift calculation
         kw_opt: xtb command line keywords for optimization
         kw_interpolation: xtb command line keywords for the TS interpolation
-        #debug_path: Path to save files in debug mode
     Returns:
         results: results of the TS optimization
     """
@@ -222,27 +220,6 @@ def opt_ts_ci(
     
     coordinates_opt = ts_from_gfnff_ci(elements, coordinates_guess, topologies, e_shift=e_shift, **kw_opt)
 
-    # # Save the optimisation steps if debug mode
-    # if debug_path is not None:
-    #     os.makedirs(debug_path, exist_ok=True)
-    #     temp_xyz = f"{debug_path}/opt_steps.xyz"
-    #     output_pdb = f"{debug_path}/opt_steps.pdb"
-    #     with open(temp_xyz, "w") as f:
-    #         f.write(f"{len(elements)}\n")
-    #         f.write("initial guess\n")
-    #         for element, coord_elem in zip(elements, coordinates_guess):
-    #             f.write(f"{element} {coord_elem[0]} {coord_elem[1]} {coord_elem[2]}\n")
-    #         for i, coord in enumerate(opt_results.coordinates):
-    #             f.write(f"{len(elements)}\n")
-    #             f.write(f"step {i}\n")
-    #             for element, coord_elem in zip(elements, coord):
-    #                 f.write(f"{element} {coord_elem[0]} {coord_elem[1]} {coord_elem[2]}\n")
-    #             f.write("\n")
-    #     cmd_openbabel = f"obabel -ixyz {temp_xyz} -O {output_pdb}"
-    #     subprocess.run(cmd_openbabel.split())
-    #     cmd_rm_temp = f"rm {temp_xyz}"
-    #     subprocess.run(cmd_rm_temp.split())
-
     return coordinates_opt
 
 def opt_ts(
@@ -255,7 +232,6 @@ def opt_ts(
     kw_shift: Optional[Mapping] = None,
     kw_opt: Optional[Mapping] = None,
     kw_interpolation: Optional[Mapping] = None,
-    debug_path: Optional[Union[str, PathLike]] = None,
 ) -> Results:
     """Optimize transition state with xtb command line and PySCF.
     Args:
@@ -268,7 +244,6 @@ def opt_ts(
         kw_shift: xtb command line keywords for energy shift calculation
         kw_opt: xtb command line keywords for optimization
         kw_interpolation: xtb command line keywords for the TS interpolation
-        debug_path: Path to save files in debug mode
     Returns:
         results: Results of the TS optimization
     """
@@ -296,11 +271,12 @@ def opt_ts(
     
     opt_results = ts_from_gfnff(elements, coordinates_guess, topologies, e_shift=e_shift, **kw_opt)
 
-    # Save the optimisation steps if debug mode
-    if debug_path is not None:
-        os.makedirs(debug_path, exist_ok=True)
-        temp_xyz = f"{debug_path}/opt_steps.xyz"
-        output_pdb = f"{debug_path}/opt_steps.pdb"
+    # Save the optimisation steps if path for optimisation is given
+    if "path" in kw_opt:
+        run_path = kw_opt["path"]
+        os.makedirs(run_path, exist_ok=True)
+        temp_xyz = f"{run_path}/opt_steps.xyz"
+        output_pdb = f"{run_path}/opt_steps.pdb"
         with open(temp_xyz, "w") as f:
             f.write(f"{len(elements)}\n")
             f.write("initial guess\n")
@@ -312,10 +288,10 @@ def opt_ts(
                 for element, coord_elem in zip(elements, coord):
                     f.write(f"{element} {coord_elem[0]} {coord_elem[1]} {coord_elem[2]}\n")
                 f.write("\n")
+        # Convert the xyz file to pdb for trajectory visualization
         cmd_openbabel = f"obabel -ixyz {temp_xyz} -O {output_pdb}"
         subprocess.run(cmd_openbabel.split())
-        cmd_rm_temp = f"rm {temp_xyz}"
-        subprocess.run(cmd_rm_temp.split())
+        subprocess.run(f"rm {temp_xyz}".split())
     
     results = Results(
         opt_results=opt_results,
