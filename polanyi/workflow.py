@@ -272,7 +272,7 @@ def opt_ts(
     opt_results = ts_from_gfnff(elements, coordinates_guess, topologies, e_shift=e_shift, **kw_opt)
 
     # Save the optimisation steps if path for optimisation is given
-    if "path" in kw_opt:
+    if "path" in kw_opt and kw_opt["path"] is not None:
         run_path = kw_opt["path"]
         os.makedirs(run_path, exist_ok=True)
         temp_xyz = f"{run_path}/opt_steps.xyz"
