@@ -157,6 +157,21 @@ def run_xtb(
             env=env,
         )
 
+    # If SCC did not converge, rerun xtb with increased electronic temperature and then restart with normal temperature
+    if "-1- scf: Self consistent charge iterator did not converge" in (path / "xtb.out").read_text():
+        for file in path.iterdir():
+            if file.name != "xtb.xyz":
+                file.unlink()
+        command = command + " --etemp 1000.0 && " + command + " --restart"
+        with open(path / "xtb.out", "w") as stdout, open(path / "xtb.err", "w") as stderr:
+            process = subprocess.run(
+                command.split(),
+                cwd=path,
+                stdout=stdout,
+                stderr=stderr,
+                env=env,
+            )
+
     return process
 
 
