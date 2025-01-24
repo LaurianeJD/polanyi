@@ -62,10 +62,10 @@ def opt_ts_python(
 ) -> Results:
     """Optimize transition state with xtb-python and PySCF.
     Args:
-        elements: Elements as symbols or numbers
-        coordinates: Sequence containing the coordinates of each ground states (Å)
-        coordinates_guess: Initial guess for the transition state (Å)
-        e_shift: Energy shift between the ground states
+        elements: elements as symbols or numbers
+        coordinates: sequence containing the coordinates of each ground states [Å]
+        coordinates_guess: initial guess for the transition state [Å]
+        e_shift: energy shift between reference (GFN2-xTB by default) and GFN-FF reaction energies
         kw_calculators: xtb command line keywords for topologies calculation
         kw_shift: xtb command line keywords for energy shift calculation
         kw_opt: xtb command line keywords for optimization
@@ -125,16 +125,16 @@ def opt_ts_ci_python(
 ) -> Array2D:
     """Optimize transition state with xtb-python and PySCF using conical intersection.
     Args:
-        elements: Elements as symbols or numbers
-        coordinates: Sequence containing the coordinates of each ground states (Å)
-        coordinates_guess: Initial guess for the transition state (Å)
-        e_shift: Energy shift between the ground states
+        elements: elements as symbols or numbers
+        coordinates: sequence containing the coordinates of each ground states [Å]
+        coordinates_guess: initial guess for the transition state [Å]
+        e_shift: energy shift between reference (GFN2-xTB by default) and GFN-FF reaction energies
         kw_calculators: xtb command line keywords for topologies calculation
         kw_shift: xtb command line keywords for energy shift calculation
         kw_opt: xtb command line keywords for optimization
         kw_interpolation: xtb command line keywords for the TS interpolation
     Returns:
-        coordinates_op: coordinates of the optimised transition state (Å)
+        coordinates_op: coordinates of the optimised transition state [Å]
     """
     if kw_opt is None:
         kw_opt = {}
@@ -174,6 +174,7 @@ def opt_ts_ci(
     coordinates_guess: Optional[Array2D] = None,
     atomic_charges: Optional[list[float]] = None,
     e_shift: Optional[float] = None,
+    e_diff_ref: Optional[float] = None,
     kw_calculators: Optional[Mapping] = None,
     kw_shift: Optional[Mapping] = None,
     kw_opt: Optional[Mapping] = None,
@@ -181,11 +182,12 @@ def opt_ts_ci(
 ) -> Results:
     """Optimize transition state with xtb command line and PySCF using conical intersection.
     Args:
-        elements: Elements as symbols or numbers
-        coordinates: Sequence containing the coordinates of each ground states (Å)
-        coordinates_guess: Initial guess for the transition state (Å)
-        atomic_charges: Atomic charges (not implemented yet)
-        e_shift: Energy shift between the ground states
+        elements: elements as symbols or numbers
+        coordinates: sequence containing the coordinates of each ground states [Å]
+        coordinates_guess: initial guess for the transition state [Å]
+        atomic_charges: atomic charges (not implemented yet)
+        e_shift: energy shift between reference (GFN2-xTB by default) and GFN-FF reaction energies
+        e_diff_ref: reference reaction energy [Eh]. If provided, it is used instead of GFN2-xTB in the energy shift calculation
         kw_calculators: xtb command line keywords for topologies calculation
         kw_shift: xtb command line keywords for energy shift calculation
         kw_opt: xtb command line keywords for optimization
@@ -206,7 +208,7 @@ def opt_ts_ci(
     
     shift_results: Optional[tuple[float, float, float]]
     if e_shift is None:
-        shift_results = calculate_e_shift_xtb(elements, coordinates, topologies, **kw_shift)
+        shift_results = calculate_e_shift_xtb(elements, coordinates, topologies, e_diff_ref=e_diff_ref, **kw_shift)
         e_shift = shift_results[0]
     else:
         shift_results = None
@@ -236,10 +238,10 @@ def opt_ts(
     """Optimize transition state with xtb command line and PySCF.
     Args:
         elements: TS elements as symbols or numbers
-        coordinates: Sequence containing the coordinates of each ground states (Å)
-        coordinates_guess: Initial guess for the transition state (Å)
-        atomic_charges: Atomic charges (not implemented yet)
-        e_shift: Energy shift between the ground states
+        coordinates: sequence containing the coordinates of each ground states [Å]
+        coordinates_guess: initial guess for the transition state [Å]
+        atomic_charges: atomic charges (not implemented yet)
+        e_shift: energy shift between reference (GFN2-xTB by default) and GFN-FF reaction energies
         kw_calculators: xtb command line keywords for topologies calculation
         kw_shift: xtb command line keywords for energy shift calculation
         kw_opt: xtb command line keywords for optimization
@@ -377,11 +379,11 @@ def opt_frags_from_complex(
 ) -> list[tuple[Array1D, Array2D]]:
     """Optimize two fragments from complex.
     Args:
-        elements: Elements as symbols or numbers
-        coordinates: Coordinates (Å)
+        elements: elements as symbols or numbers
+        coordinates: coordinates [Å]
         keywords: xtb command line keywords for optimization
         wbo_keywords: xtb command line keywords for wbo calculation
-        xcontrol_keywords: xtb xcontrol keywords
+        xcontrol_keywords: input instructions to write in the xtb xcontrol file
     Returns:
         fragments: Fragment elements and coordinates
     """
@@ -534,13 +536,29 @@ def calculate_e_shift_xtb(
     elements: Union[Sequence[int], Sequence[str]],
     coordinates: Sequence[ArrayLike2D],
     topologies: Sequence[bytes],
+    e_diff_ref: Optional[float] = None,
     keywords_ff: Optional[list[str]] = None,
     keywords_sp: Optional[list[str]] = None,
     xcontrol_keywords_ff: Optional[MutableMapping[str, list[str]]] = None,
     xcontrol_keywords_sp: Optional[MutableMapping[str, list[str]]] = None,
     paths: Optional[Sequence[Union[str, PathLike]]] = None,
 ) -> tuple[float, float, float]:
-    """Calculate energy shift between geometries."""
+    """Calculate energy shift between reference (default: GFN2-xTB) and GFN-FF reaction energies.
+    Args:
+        elements: elements as symbols or numbers
+        coordinates: sequence containing the coordinates of each ground states [Å]
+        topologies: sequence of GFN-FF topologies for each ground state
+        e_diff_ref: reference reaction energy [Eh]. If provided, it is used instead of the GFN2-xTB calculation
+        keywords_ff: xtb command line keywords for GFN-FF calculation
+        keywords_sp: xtb command line keywords for GFN2-xTB calculation
+        xcontrol_keywords_ff: input instructions to write in the xtb xcontrol file for GFN-FF calculation
+        xcontrol_keywords_sp: input instructions to write in the xtb xcontrol file for GFN2-xTB calculation
+        paths: list of folders to save the xtb runs
+    Returns:
+        e_shift: difference between the GFN2-xTB and GFN-FF reaction energies
+        e_diff_ref: reaction energy calculated with GFN2-xTB or given as argument
+        e_diff_ff: reaction energy calculated with GFN-FF
+    """
 
     # Set the xtb keywords for the GFN-FF calculations
     if keywords_ff is None:
@@ -558,7 +576,8 @@ def calculate_e_shift_xtb(
         xtb_paths = [Path(path) for path in paths]
 
     energies_ff = []
-    energies_sp = []
+    if not e_diff_ref:
+        energies_sp = []
     for coordinates_, topology, xtb_path in zip(coordinates, topologies, xtb_paths):
         xtb_path.mkdir(exist_ok=True)
         with open(xtb_path / "gfnff_topo", "wb") as f:
@@ -573,31 +592,33 @@ def calculate_e_shift_xtb(
         energy = parse_energy(xtb_path / "xtb.out")
         energies_ff.append(energy)
 
-        run_xtb(
-            elements,
-            coordinates_,
-            path=xtb_path,
-            keywords=keywords_sp,
-            xcontrol_keywords=xcontrol_keywords_sp,
-        )
-        energy = parse_energy(xtb_path / "xtb.out")
-        energies_sp.append(energy)
+        if not e_diff_ref:
+            run_xtb(
+                elements,
+                coordinates_,
+                path=xtb_path,
+                keywords=keywords_sp,
+                xcontrol_keywords=xcontrol_keywords_sp,
+            )
+            energy = parse_energy(xtb_path / "xtb.out")
+            energies_sp.append(energy)
 
     if paths is None:
         for temp_dir in temp_dirs:
             temp_dir.cleanup()
 
-    e_diff_gfn = energies_sp[-1] - energies_sp[0]
+    if not e_diff_ref:
+        e_diff_ref = energies_sp[-1] - energies_sp[0]
     e_diff_ff = energies_ff[-1] - energies_ff[0]
-    e_shift = e_diff_gfn - e_diff_ff
+    e_shift = e_diff_ref - e_diff_ff
 
-    return e_shift, e_diff_gfn, e_diff_ff
+    return e_shift, e_diff_ref, e_diff_ff
 
 
 def calculate_e_shift_xtb_python(
     calculators: Sequence[XTBCalculator], method: str = ("GFN2-xTB")
 ) -> ShiftResults:
-    """Calculate energy shift between geometries."""
+    """Calculate energy shift between reference (default: GFN2-xTB) and GFN-FF reaction energies."""
     energies_gfn = []
     energies_ff = []
     for calculator in calculators:

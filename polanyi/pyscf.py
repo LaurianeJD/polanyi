@@ -79,8 +79,8 @@ def e_g_function(
         topologies: sequence of GFN-FF topologies for each ground state
         results: OptResults object to store optimization results
         keywords: xtb command line keywords
-        xcontrol_keywords: xTB control keywords
-        e_shift: energy shift between the ground states
+        xcontrol_keywords: input instructions to write in the xTB xcontrol file
+        e_shift: energy shift between GFN2-xTB and GFN-FF reaction energy
         coupling: coupling constant between the ground states force fields
         path: path where to run calculations
     Returns:
@@ -160,8 +160,8 @@ def e_g_function_ci(
         mol: PySCF molecule (coordinates in Bohr)
         topology: GFN-FF topology for a ground state
         keywords: xtb command line keywords
-        xcontrol_keywords: xTB control keywords
-        e_shift: energy shift between the ground states
+        xcontrol_keywords: input instructions to write in the xTB xcontrol file
+        e_shift: energy shift between GFN2-xTB and GFN-FF reaction energy
         path: path where to run calculations
     Returns:
         tuple of energy and gradient
@@ -219,7 +219,7 @@ def e_g_function_python(
         mol: PySCF molecule (coordinates in Bohr)
         calculators: xtb-python calculators
         results: OptResults object to store optimization results
-        e_shift: energy shift between the ground states
+        e_shift: energy shift between GFN2-xTB and GFN-FF reaction energy
         coupling: coupling constant between the ground states force fields
         path: path where to run calculations
     Returns:
@@ -268,7 +268,7 @@ def e_g_function_ci_python(
     Args:
         mol: PySCF molecule (coordinates are in Bohr)
         calculator: xtb-python calculator
-        e_shift: energy shift between the ground states
+        e_shift: energy shift between GFN2-xTB and GFN-FF reaction energy
         path: path where to run calculations
     Returns:
         tuple of energy and gradient
@@ -305,11 +305,11 @@ def ts_from_gfnff(
     """Optimize TS with GFNFF.
     Args:
         elements: TS elements as symbols or numbers
-        coordinates: Sequence containing the coordinates of each ground states (Å)
+        coordinates: Sequence containing the coordinates of each ground states [Å]
         topologies: sequence of GFN-FF topologies for each ground state
         keywords: xtb command line keywords
-        xcontrol_keywords: xTB control keywords
-        e_shift: energy shift between the ground states
+        xcontrol_keywords: input instructions to write in the xTB xcontrol file
+        e_shift: energy shift between GFN2-xTB and GFN-FF reaction energy
         coupling: coupling constant between the ground states force fields
         maxsteps: maximum number of optimization steps
         callback: function to call after each optimization step
@@ -374,9 +374,9 @@ def ts_from_gfnff_python(
     """Optimize TS with GFNFF.
     Args:
         elements: TS elements as symbols or numbers
-        coordinates: Sequence containing the coordinates of each ground states (Å)
+        coordinates: sequence containing the coordinates of each ground states [Å]
         calculators: xtb-python calculators
-        e_shift: energy shift between the ground states
+        e_shift: energy shift between GFN2-xTB and GFN-FF reaction energy
         coupling: coupling constant between the ground states force fields
         maxsteps: maximum number of optimization steps
         callback: function to call after each optimization step
@@ -441,11 +441,11 @@ def ts_from_gfnff_ci(
     """Optimize TS from conical intersection with GFNFF.
     Args:
         elements: TS elements as symbols or numbers
-        coordinates: Sequence containing the coordinates of each ground states (Å)
+        coordinates: sequence containing the coordinates of each ground states [Å]
         topologies: sequence of GFN-FF topologies for each ground state
         keywords: xtb command line keywords
-        xcontrol_keywords: xTB control keywords
-        e_shift: energy shift between the ground states
+        xcontrol_keywords: input instructions to write in the xTB xcontrol file
+        e_shift: energy shift between GFN2-xTB and GFN-FF reaction energy
         maxsteps: maximum number of optimization steps
         alpha: width parameter for penalty function in conical interesection optimization
         sigma: scaling parameter for penalty function in conical interesection optimization
@@ -453,7 +453,7 @@ def ts_from_gfnff_ci(
         conv_params: convergence parameters for PySCF optimization
         path: path where to run calculations
     Returns:
-        optimized TS coordinates (Å)
+        optimized TS coordinates [Å]
     """
     if conv_params is None:
         conv_params = {}
@@ -517,9 +517,9 @@ def ts_from_gfnff_ci_python(
     """Optimize TS with GFNFF.
     Args:
         elements: TS elements as symbols or numbers
-        coordinates: Sequence containing the coordinates of each ground states (Å)
+        coordinates: sequence containing the coordinates of each ground states [Å]
         calculators: xtb-python calculators
-        e_shift: energy shift between the ground states
+        e_shift: energy shift between GFN2-xTB and GFN-FF reaction energy
         maxsteps: maximum number of optimization steps
         alpha: width parameter for penalty function in conical interesection optimization
         sigma: scaling parameter for penalty function in conical interesection optimization
@@ -527,7 +527,7 @@ def ts_from_gfnff_ci_python(
         conv_params: convergence parameters for PySCF optimization
         path: path where to run calculations
     Returns:
-        optimized TS coordinates (Å)
+        optimized TS coordinates [Å]
     """
     if conv_params is None:
         conv_params = {}

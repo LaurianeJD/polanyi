@@ -31,8 +31,8 @@ class XTBCalculator:
     """xTB calculator class.
 
     Args:
-        elements: Elements as atomic numbers
-        coordinates: Coordinates (Å)
+        elements: elements as atomic numbers
+        coordinates: coordinates [Å]
 
     Attributes:
         calculator: xtb-python calculator
@@ -87,7 +87,7 @@ class XTBCalculator:
 
     @property
     def coordinates(self) -> Array2D:
-        """Coordinates (Å)."""
+        """Coordinates [Å]."""
         return self._coordinates
 
     @coordinates.setter
@@ -221,7 +221,13 @@ def write_xcontrol(
     file: Union[str, PathLike],
     keywords: MutableMapping[str, list[str]],
 ) -> None:
-    """Write keywords to xcontrol file."""
+    """Write input instructions to xTB xcontrol file.
+    Args:
+        file: path to the xcontrol file to create
+        keywords: xTB input instructions to write in the xcontrol file
+    Returns:
+        None, write xcontrol file    
+    """
     string = ""
     for header, lines in keywords.items():
         string += f"${header}\n"
