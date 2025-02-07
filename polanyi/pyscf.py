@@ -155,7 +155,7 @@ def e_g_function_ci(
     e_shift: float = 0,
     path: Optional[Union[str, PathLike]] = None,
 ) -> tuple[float, Array2D]:
-    """Find TS with GFN-FF.
+    """Find TS with GFN-FF for conical intersection using xtb command line.
     Args:
         mol: PySCF molecule (coordinates in Bohr)
         topology: GFN-FF topology for a ground state
@@ -264,7 +264,7 @@ def e_g_function_ci_python(
     e_shift: float = 0,
     path: Optional[Union[str, PathLike]] = None,
 ) -> tuple[float, Array2D]:
-    """Find TS with GFN-FF using xtb-python and conical intersection.
+    """Find TS with GFN-FF for conical intersection using xtb-python.
     Args:
         mol: PySCF molecule (coordinates are in Bohr)
         calculator: xtb-python calculator
@@ -442,7 +442,7 @@ def ts_from_gfnff_ci(
     Args:
         elements: TS elements as symbols or numbers
         coordinates: sequence containing the coordinates of each ground states [Å]
-        topologies: sequence of GFN-FF topologies for each ground state
+        topologies: sequence of GFN-FF topology for each ground state
         keywords: xtb command line keywords
         xcontrol_keywords: input instructions to write in the xTB xcontrol file
         e_shift: energy shift between GFN2-xTB and GFN-FF reaction energy

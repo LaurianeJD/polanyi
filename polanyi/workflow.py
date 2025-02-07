@@ -66,10 +66,10 @@ def opt_ts_python(
         coordinates: sequence containing the coordinates of each ground states [Å]
         coordinates_guess: initial guess for the transition state [Å]
         e_shift: energy shift between reference (GFN2-xTB by default) and GFN-FF reaction energies
-        kw_calculators: xtb command line keywords for topologies calculation
-        kw_shift: xtb command line keywords for energy shift calculation
-        kw_opt: xtb command line keywords for optimization
-        kw_interpolation: xtb command line keywords for the TS interpolation
+        kw_calculators: parameters for topologies calculation
+        kw_shift: parameters for energy shift calculation
+        kw_opt: parameters for optimization
+        kw_interpolation: parameters for the TS interpolation
     Returns:
         results: results of the TS optimization
     """
@@ -129,10 +129,10 @@ def opt_ts_ci_python(
         coordinates: sequence containing the coordinates of each ground states [Å]
         coordinates_guess: initial guess for the transition state [Å]
         e_shift: energy shift between reference (GFN2-xTB by default) and GFN-FF reaction energies
-        kw_calculators: xtb command line keywords for topologies calculation
-        kw_shift: xtb command line keywords for energy shift calculation
-        kw_opt: xtb command line keywords for optimization
-        kw_interpolation: xtb command line keywords for the TS interpolation
+        kw_calculators: parameters for topologies calculation
+        kw_shift: parameters for energy shift calculation
+        kw_opt: parameters for optimization
+        kw_interpolation: parameters for the TS interpolation
     Returns:
         coordinates_op: coordinates of the optimised transition state [Å]
     """
@@ -188,10 +188,10 @@ def opt_ts_ci(
         atomic_charges: atomic charges (not implemented yet)
         e_shift: energy shift between reference (GFN2-xTB by default) and GFN-FF reaction energies
         e_diff_ref: reference reaction energy [Eh]. If provided, it is used instead of GFN2-xTB in the energy shift calculation
-        kw_calculators: xtb command line keywords for topologies calculation
-        kw_shift: xtb command line keywords for energy shift calculation
-        kw_opt: xtb command line keywords for optimization
-        kw_interpolation: xtb command line keywords for the TS interpolation
+        kw_calculators: parameters for topologies calculation
+        kw_shift: parameters for energy shift calculation
+        kw_opt: parameters for optimization
+        kw_interpolation: parameters for the TS interpolation
     Returns:
         results: results of the TS optimization
     """
@@ -242,10 +242,10 @@ def opt_ts(
         coordinates_guess: initial guess for the transition state [Å]
         atomic_charges: atomic charges (not implemented yet)
         e_shift: energy shift between reference (GFN2-xTB by default) and GFN-FF reaction energies
-        kw_calculators: xtb command line keywords for topologies calculation
-        kw_shift: xtb command line keywords for energy shift calculation
-        kw_opt: xtb command line keywords for optimization
-        kw_interpolation: xtb command line keywords for the TS interpolation
+        kw_calculators: parameters for topologies calculation
+        kw_shift: parameters for energy shift calculation
+        kw_opt: parameters for optimization
+        kw_interpolation: parameters for the TS interpolation
     Returns:
         results: Results of the TS optimization
     """
