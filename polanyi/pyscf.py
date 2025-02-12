@@ -166,7 +166,6 @@ def e_g_function_ci(
     Returns:
         tuple of energy and gradient
     """
-
     if keywords is None:
         keywords = []
     keywords = set([keyword.strip().lower() for keyword in keywords])
@@ -180,7 +179,7 @@ def e_g_function_ci(
     else:
         xtb_path = Path(path)
         cleanup = False
-    
+
     elements = mol.atom_charges()
     # Get coordinates in Angstrom
     coordinates = mol.atom_coords() * BOHR_TO_ANGSTROM
@@ -496,7 +495,7 @@ def ts_from_gfnff_ci(
     )
 
     opt_coordinates: Array2D = (
-        np.ascontiguousarray(opt_mole.atom_coords()) * BOHR_TO_ANGSTROM
+        np.ascontiguousarray(opt_mole.atom_coords()) * BOHR_TO_ANGSTROM #TODO: use atom_coords(unit='ANG') instead
     )
 
     return opt_coordinates
@@ -631,7 +630,7 @@ def optimize_ci(
     meci_alpha = alpha
     engine_1.callback = callback
     engines_wrapper = EnginesWrapper([engine_1, engine_2])
-    engine = ConicalIntersection(M, engines_wrapper , meci_sigma, meci_alpha)
+    engine = ConicalIntersection(M, engines_wrapper, meci_sigma, meci_alpha)
     engine.maxsteps = maxsteps
     # To avoid overwritting method.mol
     engine.mol = g_scanners[0].mol.copy()
@@ -657,11 +656,11 @@ def optimize_ci(
     except geometric_solver.NotConvergedError as e:
         lib.logger.note(method, str(e))
         conv = False
-    
+
     # Remove the temporary files created by geomeTRIC
     if os.path.exists(f"{tmpf}_optim.xyz"):
         os.remove(f"{tmpf}_optim.xyz")
     if os.path.exists(f"{tmpf}.tmp"):
         shutil.rmtree(f"{tmpf}.tmp")
 
-    return conv, engine.mol
+    return conv, engine_1.mol
