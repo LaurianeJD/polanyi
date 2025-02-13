@@ -225,8 +225,8 @@ def opt_ts_ci(
     save_opt_steps = False
     if "path" in kw_opt and kw_opt["path"] is not None:
         save_opt_steps = True
-        run_path = kw_opt["path"]
-        temp_xyz = f"{run_path}/opt_steps.xyz"
+        run_path = Path(kw_opt["path"])
+        temp_xyz = run_path / "opt_steps.xyz"
         os.makedirs(run_path, exist_ok=True)
         def get_opt_steps_from_ci(envs):
             pyscf_mol = envs['g_scanner'].mol
@@ -242,10 +242,10 @@ def opt_ts_ci(
 
     if save_opt_steps:
         # Convert the xyz file to pdb for trajectory visualization
-        output_pdb = f"{run_path}/opt_steps.pdb"
+        output_pdb = run_path / "opt_steps.pdb"
         cmd_openbabel = f"obabel -ixyz {temp_xyz} -O {output_pdb}"
         subprocess.run(cmd_openbabel.split())
-        subprocess.run(f"rm {temp_xyz}".split())
+        temp_xyz.unlink()
 
     print(f"Guess coords: {coordinates_guess}")
     print(f"Opt coords: {coordinates_opt}")
@@ -303,10 +303,10 @@ def opt_ts(
 
     # Save the optimisation steps if path for optimisation is given
     if "path" in kw_opt and kw_opt["path"] is not None:
-        run_path = kw_opt["path"]
+        run_path = Path(kw_opt["path"])
         os.makedirs(run_path, exist_ok=True)
-        temp_xyz = f"{run_path}/opt_steps.xyz"
-        output_pdb = f"{run_path}/opt_steps.pdb"
+        temp_xyz = run_path / "opt_steps.xyz"
+        output_pdb = run_path / "opt_steps.pdb"
         with open(temp_xyz, "w") as f:
             f.write(f"{len(elements)}\n")
             f.write("initial guess\n")
@@ -321,7 +321,7 @@ def opt_ts(
         # Convert the xyz file to pdb for trajectory visualization
         cmd_openbabel = f"obabel -ixyz {temp_xyz} -O {output_pdb}"
         subprocess.run(cmd_openbabel.split())
-        subprocess.run(f"rm {temp_xyz}".split())
+        temp_xyz.unlink()
 
     results = Results(
         opt_results=opt_results,
