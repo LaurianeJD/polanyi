@@ -222,20 +222,33 @@ def opt_ts_ci(
         coordinates_guess = path[n_images // 2]
 
     # Save the optimisation steps if path for optimisation is given
+    save_opt_steps = False
     if "path" in kw_opt and kw_opt["path"] is not None:
+        save_opt_steps = True
         run_path = kw_opt["path"]
+        temp_xyz = f"{run_path}/opt_steps.xyz"
         os.makedirs(run_path, exist_ok=True)
         def get_opt_steps_from_ci(envs):
-            mol = envs['g_scanner'].mol
-            elements = mol.atom_charges()
-            coordinates = np.ascontiguousarray(mol.atom_coords(unit='ANG'))
-            xyz_string = get_xyz_string(elements, coordinates)
-            with open(f"{run_path}/opt_steps.xyz", "a") as f:
+            pyscf_mol = envs['g_scanner'].mol
+            pyscf_elements = pyscf_mol.atom_charges()
+            # pyscf_coordinates = np.ascontiguousarray(pyscf_mol.atom_coords(unit='ANG'))
+            pyscf_coordinates = np.array(pyscf_mol.atom_coords(unit='ANG'), order="C")
+            xyz_string = get_xyz_string(pyscf_elements, pyscf_coordinates)
+            with open(temp_xyz, "a") as f:
                 f.write(xyz_string)    
         kw_opt["callback"] = get_opt_steps_from_ci
 
     coordinates_opt = ts_from_gfnff_ci(elements, coordinates_guess, topologies, e_shift=e_shift, **kw_opt)
 
+    if save_opt_steps:
+        # Convert the xyz file to pdb for trajectory visualization
+        output_pdb = f"{run_path}/opt_steps.pdb"
+        cmd_openbabel = f"obabel -ixyz {temp_xyz} -O {output_pdb}"
+        subprocess.run(cmd_openbabel.split())
+        subprocess.run(f"rm {temp_xyz}".split())
+
+    print(f"Guess coords: {coordinates_guess}")
+    print(f"Opt coords: {coordinates_opt}")
     return coordinates_opt
 
 
