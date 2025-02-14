@@ -24,7 +24,6 @@ from pyscf.grad.rhf import GradientsMixin
 from pyscf.gto import Mole
 
 from polanyi import config
-from polanyi.data import BOHR_TO_ANGSTROM
 from polanyi.evb import evb_eigenvalues
 from polanyi.typing import Array2D, ArrayLike2D
 from polanyi.utils import convert_elements
@@ -75,7 +74,7 @@ def e_g_function(
 ) -> tuple[float, Array2D]:
     """Find TS with GFN-FF using xtb command line.
     Args:
-        mol: PySCF molecule (coordinates are in Bohr)
+        mol: PySCF molecule
         topologies: sequence of GFN-FF topologies for each ground state
         results: OptResults object to store optimization results
         keywords: xtb command line keywords
@@ -103,8 +102,7 @@ def e_g_function(
         xtb_paths = [path / str(i) for i in range(len(topologies))]
         cleanup = False
     elements = mol.atom_charges()
-    # Get coordinates in Angstrom
-    coordinates = mol.atom_coords() * BOHR_TO_ANGSTROM
+    coordinates = mol.atom_coords(unit='ANG')
 
     energies = []
     gradients = []
@@ -157,7 +155,7 @@ def e_g_function_ci(
 ) -> tuple[float, Array2D]:
     """Find TS with GFN-FF for conical intersection using xtb command line.
     Args:
-        mol: PySCF molecule (coordinates in Bohr)
+        mol: PySCF molecule
         topology: GFN-FF topology for a ground state
         keywords: xtb command line keywords
         xcontrol_keywords: input instructions to write in the xTB xcontrol file
@@ -181,8 +179,7 @@ def e_g_function_ci(
         cleanup = False
 
     elements = mol.atom_charges()
-    # Get coordinates in Angstrom
-    coordinates = mol.atom_coords() * BOHR_TO_ANGSTROM
+    coordinates = mol.atom_coords(unit='ANG')
 
     xtb_path.mkdir(exist_ok=True)
     if not (xtb_path / "gfnff_topo").exists():
@@ -215,7 +212,7 @@ def e_g_function_python(
 ) -> tuple[float, Array2D]:
     """Find TS with GFN-FF using xtb-python.
     Args:
-        mol: PySCF molecule (coordinates in Bohr)
+        mol: PySCF molecule
         calculators: xtb-python calculators
         results: OptResults object to store optimization results
         e_shift: energy shift between GFN2-xTB and GFN-FF reaction energy
@@ -228,8 +225,7 @@ def e_g_function_python(
         path = Path.cwd()
     else:
         path = Path(path)
-    # Get coordinates in Angstrom
-    coordinates: np.ndarray = np.ascontiguousarray(mol.atom_coords()) * BOHR_TO_ANGSTROM
+    coordinates: np.ndarray = np.ascontiguousarray(mol.atom_coords(unit='ANG'))
 
     energies = []
     gradients = []
@@ -265,7 +261,7 @@ def e_g_function_ci_python(
 ) -> tuple[float, Array2D]:
     """Find TS with GFN-FF for conical intersection using xtb-python.
     Args:
-        mol: PySCF molecule (coordinates are in Bohr)
+        mol: PySCF molecule
         calculator: xtb-python calculator
         e_shift: energy shift between GFN2-xTB and GFN-FF reaction energy
         path: path where to run calculations
@@ -277,8 +273,7 @@ def e_g_function_ci_python(
     else:
         path = Path(path)
 
-    # Get coordinates in Angstrom
-    coordinates = np.ascontiguousarray(mol.atom_coords()) * BOHR_TO_ANGSTROM
+    coordinates = np.ascontiguousarray(mol.atom_coords(unit='ANG'))
 
     calculator.coordinates = coordinates
     energy, gradient = calculator.sp(return_gradient=True)
@@ -506,7 +501,7 @@ def ts_from_gfnff_ci(
     )
 
     opt_coordinates: Array2D = (
-        np.ascontiguousarray(opt_mole.atom_coords()) * BOHR_TO_ANGSTROM #TODO: use atom_coords(unit='ANG') instead
+        np.ascontiguousarray(opt_mole.atom_coords(unit='ANG'))
     )
 
     return opt_coordinates
@@ -574,7 +569,7 @@ def ts_from_gfnff_ci_python(
     )
 
     opt_coordinates: Array2D = (
-        np.ascontiguousarray(opt_mole.atom_coords()) * BOHR_TO_ANGSTROM
+        np.ascontiguousarray(opt_mole.atom_coords(unit='ANG'))
     )
 
     return opt_coordinates
