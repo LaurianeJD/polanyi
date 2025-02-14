@@ -17,6 +17,7 @@ from polanyi.typing import (
     ArrayLike3D,
 )
 from polanyi.utils import convert_elements
+import warnings
 
 
 def read_xyz(file: Union[str, PathLike]) -> tuple[Array1D, Union[Array2D, Array3D]]:
@@ -61,6 +62,7 @@ def read_xyz(file: Union[str, PathLike]) -> tuple[Array1D, Union[Array2D, Array3
 def get_xyz_string(
     elements: Union[Iterable[int], Iterable[str]],
     coordinates: ArrayLike2D,
+    decimals: int = 6,
     comment: str = "",
 ) -> str:
     """Return xyz string.
@@ -68,15 +70,20 @@ def get_xyz_string(
     Args:
         elements: Elements as atomic symbols or numbers
         coordinates: Coordinates (Å)
-        comment: Comment
+        decimals: Number of decimals to print for coordinates (max 12)
+        comment: Comment line of xyz file
 
     Returns:
         string: XYZ string
     """
+    max_decimals = 12
+    if decimals > max_decimals:
+        decimals = max_decimals
+        warnings.warn(f"decimals was greater than {max_decimals} and has been set to {max_decimals}.", UserWarning)
     symbols = convert_elements(elements, output="symbols")
     coordinates = np.asarray(coordinates)
     lines = [
-        f"{s:10s}{c[0]:10.5f}{c[1]:10.5f}{c[2]:10.5f}\n"
+        f"{s:10s}{c[0]:{max_decimals+4}.{decimals}f}{c[1]:{max_decimals+4}.{decimals}f}{c[2]:{max_decimals+4}.{decimals}f}\n"
         for s, c in zip(symbols, coordinates)
     ]
     string = f"{len(lines)}\n"
