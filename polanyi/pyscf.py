@@ -322,7 +322,9 @@ def ts_from_gfnff(
         conv_params = {}
     if path:
         path = Path(path)
-        path.mkdir(exist_ok=True)
+        if path.exists():
+            shutil.rmtree(path)
+        path.mkdir(parents=True)
     if keywords is None:
         keywords = []
     keywords = set([keyword.strip().lower() for keyword in keywords])
@@ -391,7 +393,9 @@ def ts_from_gfnff_python(
         path = Path.cwd()
     else:
         path = Path(path)
-        path.mkdir(exist_ok=True)
+        if path.exists():
+            shutil.rmtree(path)
+        path.mkdir(parents=True)
     results = OptResults()
 
     mole = get_pyscf_mole(elements, coordinates)
@@ -458,7 +462,14 @@ def ts_from_gfnff_ci(
         conv_params = {}
     if path:
         path = Path(path)
-        path.mkdir(exist_ok=True, parents=True)
+        if path.exists():
+            shutil.rmtree(path)
+        path.mkdir(parents=True)
+        path_1 = path / "0"
+        path_2 = path / "1"
+    else:
+        path_1 = None
+        path_2 = None
     if keywords is None:
         keywords = []
     keywords = set([keyword.strip().lower() for keyword in keywords])
@@ -473,7 +484,7 @@ def ts_from_gfnff_ci(
         keywords=keywords,
         xcontrol_keywords=xcontrol_keywords,
         e_shift=0,
-        path=path,
+        path=path_1,
     )
 
     e_g_partial_2 = functools.partial(
@@ -482,7 +493,7 @@ def ts_from_gfnff_ci(
         keywords=keywords,
         xcontrol_keywords=xcontrol_keywords,
         e_shift=e_shift,
-        path=path,
+        path=path_2,
     )
 
     _, opt_mole = optimize_ci(
@@ -534,7 +545,9 @@ def ts_from_gfnff_ci_python(
         path = Path.cwd()
     else:
         path = Path(path)
-        path.mkdir(exist_ok=True, parents=True)
+        if path.exists():
+            shutil.rmtree(path)
+        path.mkdir(parents=True)
 
     mole = get_pyscf_mole(elements, coordinates)
 
